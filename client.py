@@ -2,16 +2,9 @@ import pygame
 from network import Network
 from pygame.locals import *
 from pygame.constants import *
-
+from player import Player
 from network import Network
 
-
-def read_pos(text):
-    text = text.split(",")
-    return int(text[0]), int(text[1])
-
-def make_pos(tup):
-    return str(tup[0]) + "," + str(tup[1])
 
 WIDTH = 800
 HEIGHT = 600
@@ -21,42 +14,28 @@ pygame.display.set_caption("Client")
 
 clientNumber = 0
 
-class Player:
-    def __init__(self, x, y, width, height, color):
-        self.x = x
-        self.y = y
-        self.width = width
-        self.height = height
-
-        self.color = color
-
-        self.rect = Rect(self.x, self.y, self.width, self.height)
-
-    def update(self):
-        self.rect = Rect(self.x, self.y, self.width, self.height)
-
-    def draw(self, screen):
-        pygame.draw.rect(screen, self.color, self.rect)
-
-    def move(self, x, y):
-        self.x += x
-        self.y += y
 
 
-def redraw_window(p, p2):
+def redraw_window(players):
     screen.fill((0, 0, 0))
-    p.draw(screen)
-    p2.draw(screen)
+    for player in players:
+        player.draw(screen)
+
     pygame.display.update()
     clock.tick(60)
-
 
 def main():
     run = True
     n = Network()
-    startPos = read_pos(n.get_pos())
-    p = Player(startPos[0], startPos[1], 100, 100, (0, 255, 0))
-    p2 = Player(100, 100, 50, 50, (200, 0, 0))
+
+    p = n.get_player()
+    all_players = [p]
+
+    while len(all_players) < 10:
+        p = n.get_player()
+        if p:
+            all_players.append(p)
+
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -74,11 +53,9 @@ def main():
             p.move(2, 0)
 
         p.update()
-        p2Pos = read_pos(n.send(make_pos((p.x, p.y))))
-        p2.x = p2Pos[0]
-        p2.y = p2Pos[1]
+        all_players = n.send(p)
 
-        redraw_window(p, p2)
+        redraw_window(all_players)
 
 if __name__ == "__main__":
     main()

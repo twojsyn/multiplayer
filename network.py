@@ -1,28 +1,30 @@
+import pickle
 import socket
+from constants import *
 
 class Network:
     def __init__(self):
         # Tworzenie gniazda sieciowego (socket) z rodzajem AF_INET (IPv4) i typem SOCK_STREAM (TCP)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server = "192.168.1.148"
-        self.port = 5555
+        self.server = SERVER
+        self.port = PORT
         self.addr = (self.server, self.port)
-        self.pos = self.connect()
+        self.player = self.connect()
 
-    def get_pos(self):
-        return self.pos
+    def get_player(self):
+        return self.player
 
     # Ta funkcja łączy się z serwerem.
     def connect(self):
         try:
             self.client.connect(self.addr)
-            return self.client.recv(2048).decode()
+            return pickle.loads(self.client.recv(2048))
         except:
             pass
 
     def send(self, data):
         try:
-            self.client.send(str.encode(data))
-            return self.client.recv(2048).decode()
+            self.client.send(pickle.dumps(data))
+            return pickle.loads(self.client.recv(2048))
         except socket.error as e:
             print(e)
