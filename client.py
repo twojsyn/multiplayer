@@ -8,33 +8,39 @@ from network import Network
 
 WIDTH = 800
 HEIGHT = 600
+pygame.init()
 clock = pygame.time.Clock()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Client")
 
+text_font = pygame.font.SysFont("Helvetica", 30)
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
+
 clientNumber = 0
 
-
-
-def redraw_window(players):
+def redraw_window(players, pickups, score):
     screen.fill((0, 0, 0))
     for player in players:
         player.draw(screen)
 
+    for pickup in pickups:
+        pickup.draw(screen)
+
+    textToShow = f"Points: {score}"
+    draw_text(textToShow, text_font, (255, 255, 255), 20, 20)
     pygame.display.update()
     clock.tick(60)
+
 
 def main():
     run = True
     n = Network()
+    pickups = n.send("pickups")
 
     p = n.get_player()
-    all_players = [p]
-
-    while len(all_players) < 10:
-        p = n.get_player()
-        if p:
-            all_players.append(p)
+    score = 0
 
     while run:
         for event in pygame.event.get():
@@ -53,9 +59,11 @@ def main():
             p.move(2, 0)
 
         p.update()
+        pickups = n.send("pickups")
         all_players = n.send(p)
+        score = n.send("score")
 
-        redraw_window(all_players)
+        redraw_window(all_players, pickups, score)
 
 if __name__ == "__main__":
     main()
